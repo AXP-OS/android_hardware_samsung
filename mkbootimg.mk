@@ -74,6 +74,13 @@ $(BOARD_$(call to-upper,$(subst .img,,$(subst $(2),kernel,$(notdir $(1)))))_BOOT
 endef
 endif # get-bootimage-partition-size
 
+# backwards compatibility
+ifndef get-bootimage-partition-size
+define get-bootimage-partition-size
+$(BOARD_$(call to-upper,$(subst .img,,$(subst $(2),kernel,$(notdir $(1)))))_BOOTIMAGE_PARTITION_SIZE)
+endef
+endif # get-bootimage-partition-size
+
 $(INSTALLED_BOOTIMAGE_TARGET): $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_FILES) $(BOOTIMAGE_EXTRA_DEPS)
 	$(call pretty,"Target boot image: $@")
 	$(hide) $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_ARGS) $(INTERNAL_MKBOOTIMG_VERSION_ARGS) $(BOARD_MKBOOTIMG_ARGS) --output $@
@@ -94,8 +101,4 @@ $(INSTALLED_RECOVERYIMAGE_TARGET): $(MKBOOTIMG) $(recovery_ramdisk) $(recovery_k
 	$(hide) $(BYPASS_TOOL) -p $(TARGET_ABOOT_IMAGE) $@ $@.oor
 	$(hide) cp $@.oor $@ || true
 	$(hide) $(call assert-max-image-size,$@,$(BOARD_RECOVERYIMAGE_PARTITION_SIZE),raw)
-	$(AVBTOOL) add_hash_footer --image $@ \
-	    --partition_size $(call get-bootimage-partition-size,$@,recovery) \
-	    --partition_name recovery $(INTERNAL_AVB_BOOT_SIGNING_ARGS) \
-	    $(BOARD_AVB_BOOT_ADD_HASH_FOOTER_ARGS)
 	@echo "Made recovery image: $@"
